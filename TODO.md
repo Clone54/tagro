@@ -1,0 +1,6 @@
+- [x] Initialize git repository: git init
+- [x] Add remote origin: git remote add origin https://github.com/Clone54/tagro.git
+- [ ] Add all files: git add .
+- [ ] Commit changes: git commit -m "Initial commit"
+- [ ] Push to remote: git push -u origin main
+- [ ] Verify setup: git log
