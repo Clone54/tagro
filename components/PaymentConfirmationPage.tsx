@@ -146,7 +146,7 @@ export const PaymentConfirmationPage: React.FC = () => {
                                                         <input type="text" name="senderAccountName" value={paymentProof.senderAccountName} onChange={handleProofChange} placeholder={t('accountHolderName')} className={formInputClasses}/>
                                                         <input type="text" name="senderAccountNumber" value={paymentProof.senderAccountNumber} onChange={handleProofChange} placeholder={t('accountNumber')} className={formInputClasses}/>
                                                     </div>
-                                                </>
+                                                </div>
                                             ) : (
                                                 <>
                                                     <p><strong>{t('accountNumber')}:</strong> {method.details.accountNumber}</p>

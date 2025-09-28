@@ -3,6 +3,10 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { Spinner } from './Spinner';
 
+// IMPORTANT: Go to https://api.imgbb.com/ to get your free API key and replace the placeholder below.
+// For local testing, a sample key is provided; replace with your own for production.
+let IMGBB_API_KEY = '777ce289e3918643f68c24fab1041eec'; 
+
 interface ImageUploadProps {
     onImageUpload: (source: string) => void;
     initialImage?: string;
@@ -22,17 +26,6 @@ const CloseIcon = () => (
     </svg>
 );
 
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const base64String = (reader.result as string).split(',')[1];
-            resolve(base64String);
-        };
-        reader.onerror = error => reject(error);
-    });
-};
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, initialImage = '', label = 'Upload Image', sizeSuggestion }) => {
     const [imageUrl, setImageUrl] = useState<string>(initialImage);
@@ -45,36 +38,43 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUpload, initial
         setImageUrl(initialImage);
     }, [initialImage]);
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setIsUploading(true);
-            setUploadError('');
-            try {
-                const base64Image = await fileToBase64(file);
-                const response = await fetch('/api/upload-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: base64Image }),
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const permanentUrl = result.url;
-                    setImageUrl(permanentUrl);
-                    onImageUpload(permanentUrl);
-                } else {
-                    throw new Error(result.message || 'Failed to upload image.');
-                }
-            } catch (error: any) {
-                console.error("Image upload failed:", error);
-                setUploadError(error.message || 'An unknown error occurred during upload.');
-            } finally {
-                setIsUploading(false);
-            }
+const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+        if (IMGBB_API_KEY === 'YOUR_API_KEY_HERE') {
+            setUploadError('Image hosting is not configured. Please add your ImgBB API key.');
+            return;
         }
-    };
+
+        setIsUploading(true);
+        setUploadError('');
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const result = await response.json();
+
+            if (result.success) {
+                const permanentUrl = result.data.url;
+                setImageUrl(permanentUrl);
+                onImageUpload(permanentUrl);
+            } else {
+                throw new Error(result.error?.message || 'Failed to upload image.');
+            }
+        } catch (error: any) {
+            console.error("Image upload failed:", error);
+            setUploadError(error.message || 'An unknown error occurred during upload.');
+        } finally {
+            setIsUploading(false);
+        }
+    }
+};
 
     const handleUrlChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newUrl = event.target.value;

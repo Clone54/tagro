@@ -1,4 +1,3 @@
-
 // This is a Vercel Serverless Function
 // It will live at the URL /api/upload-image
 
@@ -25,14 +24,24 @@ export default async function handler(
       return response.status(400).json({ success: false, message: 'Image data is required.' });
     }
     
-    const formData = new FormData();
-    formData.append('image', image);
+    // The ImgBB API expects a URL-encoded form body for base64 uploads.
+    // FormData creates multipart/form-data, which is incorrect for this use case.
+    // URLSearchParams correctly creates the 'application/x-www-form-urlencoded' body.
+    const body = new URLSearchParams();
+    body.append('image', image);
     
-    // Using native fetch which is available in Node 18+ (Vercel's default)
     const apiResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
       method: 'POST',
-      body: formData as any, // Cast to any to satisfy fetch body type with FormData
+      body: body,
     });
+    
+    // It's crucial to check if the response was successful before parsing JSON.
+    // An error from ImgBB might be HTML, not JSON, which would cause a parsing error.
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error('ImgBB API non-OK response:', errorText);
+        throw new Error(`ImgBB API responded with status ${apiResponse.status}.`);
+    }
 
     const result = await apiResponse.json();
 
@@ -44,6 +53,7 @@ export default async function handler(
     }
   } catch (error: any) {
     console.error('Image Upload Service Error:', error);
-    return response.status(500).json({ success: false, message: error.message || "An internal server error occurred." });
+    // Return a generic message to the client for security.
+    return response.status(500).json({ success: false, message: "An internal server error occurred during image upload." });
   }
 }
