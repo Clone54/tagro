@@ -90,7 +90,6 @@ export const updatePassword = (phone: string, newPassword: string): Promise<User
     });
 };
 
-
 export const login = (email: string, password: string): Promise<User> => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -192,7 +191,7 @@ export const deleteUser = (userIdToDelete: string, currentAdminId: string): Prom
             if (localStorage.getItem(LOGGED_IN_USER_KEY) === userIdToDelete) {
                 localStorage.removeItem(LOGGED_IN_USER_KEY);
             }
-            
+
             resolve();
         }, 300);
     });
@@ -202,10 +201,10 @@ export const getAllOrders = (): Promise<Order[]> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             const users = getUsersFromStorage();
-            const allOrders = users.flatMap(user => 
+            const allOrders = users.flatMap(user =>
                 user.orders.map(order => ({
-                    ...order, 
-                    userName: user.name, 
+                    ...order,
+                    userName: user.name,
                     userId: user.id,
                     userPhone: user.phone
                 }))
@@ -243,13 +242,20 @@ export const addOrder = (user: User, items: CartItem[], totalAmount: number, shi
                 id: `order_${Date.now()}`,
                 userId: user.id,
                 userName: user.name,
-                orderDate: new Date().toISOString(),
+                userPhone: user.phone,
                 items: items,
                 totalAmount: totalAmount,
                 shippingAddress: shippingAddress,
                 paymentDetails: paymentDetails,
                 status: 'Pending',
+                orderDate: new Date().toISOString(),
             };
+            const users = getUsersFromStorage();
+            const userIndex = users.findIndex(u => u.id === user.id);
+            if (userIndex > -1) {
+                users[userIndex].orders.push(newOrder);
+                saveUsersToStorage(users);
+            }
             resolve(newOrder);
         }, 300);
     });
