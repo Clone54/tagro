@@ -1,8 +1,8 @@
 import { User, Order, Address, CartItem, PaymentDetails } from '../types';
 
 
-const API_BASE_URL = 'https://tagro-jou1udhnv-firoz-ahmeds-projects-54758561.vercel.app/api';
-
+// This correctly uses your environment variable
+const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
