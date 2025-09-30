@@ -7,32 +7,34 @@ const userRoutes = require('./routes/users');
 
 const app = express();
 
-// --- START: CORRECT CORS CONFIGURATION ---
-// This tells your backend that ONLY your frontend is allowed to make requests.
+// --- START: UPDATED CORS CONFIGURATION ---
+
+// This is the "Guest List". It now includes your official frontend domain.
 const corsOptions = {
-  origin: 'https://tagro-hffoh8ryg-firoz-ahmeds-projects-54758561.vercel.app',
-  optionsSuccessStatus: 200 // For legacy browser support
+  origin: 'https://tagro.vercel.app' 
 };
 
-// Use the CORS middleware with the specific options
+// Use the updated guest list.
 app.use(cors(corsOptions));
-// --- END: CORRECT CORS CONFIGURATION ---
+
+// --- END: UPDATED CORS CONFIGURATION ---
 
 
 // Middleware
-// The express.json() middleware should come after CORS is configured.
 app.use(express.json());
 
+// A welcome message for the root URL (optional, but good for testing)
+app.get('/', (req, res) => {
+  res.send('Welcome to the Tagro API!');
+});
 
 // Routes
 app.use('/api/users', userRoutes);
-
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
-
 
 // Start server
 const PORT = process.env.PORT || 5000;
