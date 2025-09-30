@@ -13,7 +13,7 @@ import setAuthToken from '../../utils/setAuthToken';
 
 // --- START: FIX ---
 // Define the base API URL using your environment variable
-const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 // --- END: FIX ---
 
 // Load User
@@ -23,8 +23,8 @@ export const loadUser = () => async dispatch => {
   }
 
   try {
-    // Use the API_URL variable
-    const res = await axios.get(`${API_URL}/me`);
+    // Use the API_BASE_URL variable
+    const res = await axios.get(`${API_BASE_URL}/me`);
 
     dispatch({
       type: USER_LOADED,
@@ -48,8 +48,8 @@ export const registerUser = ({ name, email, password }) => async dispatch => {
   const body = JSON.stringify({ name, email, password });
 
   try {
-    // Use the API_URL variable
-    const res = await axios.post(`${API_URL}/register`, body, config);
+    // Use the API_BASE_URL variable
+    const res = await axios.post(`${API_BASE_URL}/register`, body, config);
 
     dispatch({
       type: REGISTER_SUCCESS,
@@ -82,8 +82,8 @@ export const loginUser = (email, password) => async dispatch => {
     const body = JSON.stringify({ email, password });
 
     try {
-        // Use the API_URL variable
-        const res = await axios.post(`${API_URL}/login`, body, config);
+        // Use the API_BASE_URL variable
+        const res = await axios.post(`${API_BASE_URL}/login`, body, config);
 
         dispatch({
             type: LOGIN_SUCCESS,
@@ -108,3 +108,4 @@ export const loginUser = (email, password) => async dispatch => {
 export const logout = () => dispatch => {
   dispatch({ type: LOGOUT });
 };
+
