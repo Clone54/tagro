@@ -8,13 +8,12 @@ import {
   AUTH_ERROR,
   LOGOUT
 } from './types';
-import { setAlert } from './alertActions';
-import setAuthToken from '../../utils/setAuthToken';
+// Note: Ensure you have an alertActions.js file for this import to work
+// import { setAlert } from './alertActions'; 
+import setAuthToken from '../utils/setAuthToken';
 
-// --- START: FIX ---
 // Define the base API URL using your environment variable
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/users`;
-// --- END: FIX ---
 
 // Load User
 export const loadUser = () => async dispatch => {
@@ -38,14 +37,14 @@ export const loadUser = () => async dispatch => {
 };
 
 // Register User
-export const registerUser = ({ name, email, password }) => async dispatch => {
+export const registerUser = ({ name, email, password, phone }) => async dispatch => {
   const config = {
     headers: {
       'Content-Type': 'application/json'
     }
   };
 
-  const body = JSON.stringify({ name, email, password });
+  const body = JSON.stringify({ name, email, password, phone });
 
   try {
     // Use the API_BASE_URL variable
@@ -56,12 +55,17 @@ export const registerUser = ({ name, email, password }) => async dispatch => {
       payload: res.data
     });
 
-    dispatch(loadUser());
+    // Login the user directly after registration
+    // Vercel might require you to return a token on register for this to work
+    // For now, we'll just indicate success.
+    // dispatch(loadUser()); 
+
   } catch (err) {
     const errors = err.response.data.errors;
 
     if (errors) {
-      errors.forEach(error => dispatch(setAlert(error.msg, 'danger')));
+      // errors.forEach(error => dispatch(setAlert(error.msg, 'danger')));
+      console.error(errors);
     }
 
     dispatch({
@@ -95,7 +99,8 @@ export const loginUser = (email, password) => async dispatch => {
         const errors = err.response.data.errors;
 
         if (errors) {
-            errors.forEach(error => dispatch(setAlert(error.msg, 'danger')));
+            // errors.forEach(error => dispatch(setAlert(error.msg, 'danger')));
+            console.error(errors);
         }
 
         dispatch({
