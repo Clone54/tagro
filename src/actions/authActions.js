@@ -1,3 +1,4 @@
+console.log("AuthActions file version: 2.0"); // Add this line
 import axios from 'axios';
 import {
   LOGIN_SUCCESS,
