@@ -18,7 +18,7 @@ interface OrderData {
  */
 export const sendOtp = async (phoneNumber: string, messageTemplate: string): Promise<{ otp: string }> => {
     try {
-        const response = await fetch('/api/send-otp', {
+        const response = await fetch('/api/sms/send-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber, messageTemplate }),

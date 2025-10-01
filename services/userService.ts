@@ -2,7 +2,7 @@ import { User, Order, Address, CartItem, PaymentDetails } from '../types';
 
 
 // This correctly uses your environment variable
-const API_URL = `${import.meta.env.VITE_API_URL}/api/users`;
+const API_URL = `${(import.meta as any).env.VITE_API_URL}/api/users`;
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
@@ -21,7 +21,7 @@ const authFetch = async (url: string, options: RequestInit = {}): Promise<Respon
     headers.Authorization = `Bearer ${token}`;
   }
 
-  return fetch(`${API_BASE_URL}${url}`, {
+  return fetch(`${API_URL}${url}`, {
     ...options,
     headers,
   });
@@ -34,7 +34,7 @@ export const register = async (userData: {
   phone: string;
   password: string;
 }): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/users/register`, {
+  const response = await fetch(`${API_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData),
@@ -48,7 +48,7 @@ export const register = async (userData: {
 
 // Login user
 export const login = async (email: string, password: string): Promise<User> => {
-  const response = await fetch(`${API_BASE_URL}/users/login`, {
+  const response = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -71,7 +71,7 @@ export const logout = (): void => {
 
 // Get logged in user
 export const getLoggedInUser = async (): Promise<User> => {
-  const response = await authFetch('/users/me');
+  const response = await authFetch('/me');
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -86,7 +86,7 @@ export const getLoggedInUser = async (): Promise<User> => {
 
 // Update user profile
 export const updateUser = async (updatedUserData: User): Promise<User> => {
-  const response = await authFetch('/users/profile', {
+  const response = await authFetch('/profile', {
     method: 'PUT',
     body: JSON.stringify(updatedUserData),
   });
@@ -101,7 +101,7 @@ export const updateUser = async (updatedUserData: User): Promise<User> => {
 
 // Get all users (admin only)
 export const getAllUsers = async (): Promise<User[]> => {
-  const response = await authFetch('/users');
+  const response = await authFetch('/');
 
   if (!response.ok) {
     const error = await response.json();
@@ -113,7 +113,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 
 // Delete user (admin only)
 export const deleteUser = async (userIdToDelete: string, currentAdminId: string): Promise<void> => {
-  const response = await authFetch(`/users/${userIdToDelete}`, {
+  const response = await authFetch(`/${userIdToDelete}`, {
     method: 'DELETE',
   });
 
@@ -131,7 +131,7 @@ export const addOrder = async (
   shippingAddress: Address,
   paymentDetails: PaymentDetails
 ): Promise<Order> => {
-  const response = await authFetch('/users/order', {
+  const response = await authFetch('/order', {
     method: 'POST',
     body: JSON.stringify({
       items,
@@ -151,7 +151,7 @@ export const addOrder = async (
 
 // Get all orders (admin only)
 export const getAllOrders = async (): Promise<Order[]> => {
-  const response = await authFetch('/users/orders');
+  const response = await authFetch('/orders');
 
   if (!response.ok) {
     const error = await response.json();
@@ -167,7 +167,7 @@ export const updateOrderStatus = async (
   userId: string,
   status: Order['status']
 ): Promise<void> => {
-  const response = await authFetch(`/users/order/${orderId}/status`, {
+  const response = await authFetch(`/order/${orderId}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
   });
@@ -185,8 +185,24 @@ export const findUserByPhone = async (phone: string): Promise<User | undefined> 
 };
 
 export const checkUserExists = async (email: string, phone: string): Promise<boolean> => {
-  // This might not be needed with API, but keeping for compatibility
-  throw new Error('Not implemented with API');
+  console.log('API_URL:', API_URL);
+  const fullUrl = `${API_URL}/check-exists`;
+  console.log('Full URL:', fullUrl);
+  console.log('Body:', JSON.stringify({ email, phone }));
+
+  const response = await fetch(fullUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, phone }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to check user existence');
+  }
+
+  const data = await response.json();
+  return data.exists;
 };
 
 export const updatePassword = async (phone: string, newPassword: string): Promise<User> => {

@@ -70,6 +70,7 @@ export const Register: React.FC = () => {
             setStep('verify');
             setTimer(60);
         } catch (err: any) {
+             console.error('Register error:', err);
              setError(err.message || 'An unexpected error occurred.');
         } finally {
             setLoading(false);

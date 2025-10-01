@@ -2,10 +2,22 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-// Note: You will need to create these auth middleware files
-// const { auth, adminAuth } = require('../middleware/auth'); 
+const { auth, adminAuth } = require('../middleware/auth');
 
 const router = express.Router();
+
+
+// Check if user exists
+router.post('/check-exists', async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    res.json({ exists: !!existingUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Register
 router.post('/register', async (req, res) => {
@@ -33,11 +45,14 @@ router.post('/register', async (req, res) => {
     });
 
     await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
+    console.log("User registered successfully");
+    res.status(201).header('Content-Type', 'application/json').json({ message: 'User registered successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Registration error:", error);
+    res.status(500).header('Content-Type', 'application/json').json({ message: error.message });
   }
 });
+
 
 // Login
 router.post('/login', async (req, res) => {
@@ -55,21 +70,17 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// A placeholder for auth middleware until it is created.
-const auth = (req, res, next) => next();
-const adminAuth = (req, res, next) => next();
-
-
 // Get logged in user
 router.get('/me', auth, async (req, res) => {
   try {
     // This will need to be updated once you have real auth middleware
-    // const user = await User.findOne({ id: req.user.id }); 
-    const user = await User.findOne(); // Temporary find
+    const user = await User.findOne({ id: req.user.id }); 
+    // const user = await User.findOne(); // Temporary find
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(user);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -217,4 +228,3 @@ router.put('/order/:orderId/status', auth, adminAuth, async (req, res) => {
 });
 
 module.exports = router;
-

@@ -1,18 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import setAuthToken from '../utils/setAuthToken'; // You will need this utility
+import setAuthToken from '../utils/setAuthToken';
 
-// 1. DEFINE THE CORRECT BASE URL
+// Define the base URL for the API
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api/users`;
 
-// Define the shape of the context
 interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   loading: boolean;
-  user: any; // Define a proper user type if you have one
-  login: (email, password) => Promise<void>;
-  register: (userData) => Promise<void>;
+  user: any;
+  login: (email: string, password: string) => Promise<void>;
+  register: (userData: any) => Promise<void>;
   logout: () => void;
   loadUser: () => Promise<void>;
 }
@@ -35,35 +34,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (token) {
-        setAuthToken(token);
-        loadUser();
+      setAuthToken(token);
+      loadUser();
     } else {
-        setLoading(false);
+      setLoading(false);
     }
   }, [token]);
 
   const loadUser = async () => {
-    if (localStorage.token) {
-        setAuthToken(localStorage.token);
+    // Always use the latest token from localStorage
+    const latestToken = localStorage.getItem('token');
+    if (latestToken) {
+      setAuthToken(latestToken);
     }
     try {
-        const res = await axios.get(`${API_BASE_URL}/me`);
-        setUser(res.data);
-        setIsAuthenticated(true);
-    } catch (err) {
-        localStorage.removeItem('token');
-        setToken(null);
-        setIsAuthenticated(false);
-        setUser(null);
+      const res = await axios.get(`${API_BASE_URL}/me`);
+      setUser(res.data);
+      setIsAuthenticated(true);
+      console.log("User data:", res.data);
+      console.log("Is authenticated:", isAuthenticated);
+    } catch (err: any) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setIsAuthenticated(false);
+      setUser(null);
+      console.error("Load User Error:", err.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
-  // 2. IMPLEMENT THE LOGIN FUNCTION CORRECTLY
-  const login = async (email, password) => {
+  const login = async (email: string, password: string) => {
     const config = {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     };
     const body = JSON.stringify({ email, password });
 
@@ -79,21 +84,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // 3. IMPLEMENT THE REGISTER FUNCTION CORRECTLY
-  const register = async (userData) => {
+  const register = async (userData: any) => {
     const config = {
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+      },
     };
     const body = JSON.stringify(userData);
 
     try {
-      // The backend should return a token upon successful registration
-      await axios.post(`${API_BASE_URL}/register`, body, config);
-      // After successful registration, you can either log them in automatically
-      // or prompt them to log in. Here we assume you want them to log in.
+      const res = await axios.post(`${API_BASE_URL}/register`, body, config);
+      // Log the response to the console
+      console.log("Registration Response:", res);
     } catch (err: any) {
-      // Throw the actual error message from the backend
       const message = err.response?.data?.message || 'Registration Failed';
+      console.error("Registration Error:", err);
       throw new Error(message);
     }
   };
@@ -114,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
-    loadUser
+    loadUser,
   };
 
   return (
@@ -123,4 +128,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
